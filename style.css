@@ -6,8 +6,9 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif; /* Basic readable font */
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Kid-friendly font */
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -24,30 +25,107 @@ body {
     100% { background-position: 0% 50%; }
 }
 
+/* Start Screen Overlay */
+.start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.start-button {
+    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+    font-size: 2.5em;
+    font-weight: bold;
+    padding: 20px 40px;
+    background: linear-gradient(45deg, #ff4e50, #f9d423);
+    border: 5px solid white;
+    border-radius: 15px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    animation: pulseButton 1.5s infinite ease-in-out;
+    transition: transform 0.2s;
+}
+
+.start-button:hover {
+    transform: scale(1.1);
+}
+
+@keyframes pulseButton {
+    0% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+}
+
+/* Game Header */
+#game-header {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#game-title {
+    font-size: 3em;
+    color: white;
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+    animation: rainbowText 6s infinite;
+}
+
+@keyframes rainbowText {
+    0% { color: #ff0000; }
+    20% { color: #ffff00; }
+    40% { color: #00ff00; }
+    60% { color: #00ffff; }
+    80% { color: #0000ff; }
+    100% { color: #ff0000; }
+}
+
+/* Game Title */
+.game-title {
+    font-size: 2.2em;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+    text-align: center;
+    animation: bounceText 2s infinite;
+}
+
+@keyframes bounceText {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
 /* Main App Container */
 #app-container {
-    width: 800px; /* Adjust as needed for your stream layout */
-    height: 600px; /* Adjust as needed */
-    position: relative; /* Needed for absolute positioning of game elements */
-    background-color: rgba(255, 255, 255, 0.1); /* Slight overlay */
+    width: 800px;
+    height: 600px;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    overflow: hidden; /* Keep game elements contained */
+    overflow: hidden;
 }
 
 /* Game Module Visibility */
 .game-module {
     width: 100%;
     height: 100%;
-    position: absolute; /* Stack them on top of each other */
+    position: absolute;
     top: 0;
     left: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-around; /* Distribute space */
+    justify-content: space-around;
     align-items: center;
     padding: 20px;
 }
@@ -56,92 +134,109 @@ body {
     display: none;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.5s ease-in-out; /* Optional fade transition */
+    transition: opacity 1s ease-in-out;
 }
 
 .active-game {
-    display: flex; /* Or block, depending on content needs */
+    display: flex;
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.5s ease-in-out; /* Optional fade transition */
+    transition: opacity 1s ease-in-out;
 }
 
 /* General Game Area & Text Styles */
 .game-area {
     width: 90%;
-    height: 70%; /* Adjust as needed */
-    position: relative; /* Context for absolute positioned children */
+    height: 70%;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Background matching the provided cup/ball images */
     background-color: #f0f0f0;
     border-radius: 10px;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
 }
 
 .game-text {
-    font-size: 3em; /* Large text */
+    font-size: 3em;
     font-weight: bold;
     color: #fff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     text-align: center;
-    animation: pulseText 1.5s infinite ease-in-out; /* Apply pulsing by default */
+    animation: pulseText 1.5s infinite ease-in-out;
 }
 
 @keyframes pulseText {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
 /* --- Game 1: Cup Game Styles --- */
 #cup-game-container .game-area {
-    /* Specific adjustments if needed, like space for shuffling */
-    justify-content: space-around; /* Space out cups */
-    align-items: flex-end; /* Align cups to bottom initially */
+    justify-content: space-around;
+    align-items: flex-end;
     padding-bottom: 30px;
 }
 
 .cup {
-    width: 120px; /* Adjust size as needed */
-    height: 150px; /* Adjust size as needed */
-    background-image: url('../images/red_cup.png'); /* Use correct relative path */
+    width: 120px;
+    height: 150px;
+    background-image: url('images/file_000000006dd461f7ad1c5e973d1c2da3.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center bottom;
-    position: absolute; /* Needed for shuffle/reveal animations */
-    bottom: 20px; /* Starting position */
-    transition: transform 0.3s ease-out, left 0.5s ease-in-out; /* Smooth movements */
-    z-index: 10; /* Cups are above the ball */
+    position: absolute;
+    bottom: 20px;
+    transition: transform 0.5s ease-out, left 0.8s ease-in-out;
+    z-index: 10;
+    cursor: pointer;
 }
 
 .ball {
-    width: 60px; /* Adjust size */
+    width: 60px;
     height: 60px;
-    background-image: url('../images/green_ball.png'); /* Use correct relative path */
+    background-image: url('images/file_00000000f7a061f7874ae90ed4485c4b.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     position: absolute;
-    bottom: -80px; /* Start below the game area, will be animated in */
+    bottom: 60px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 5; /* Ball is behind cups */
-    transition: bottom 0.5s ease-in, left 0.5s ease-in, transform 0.5s ease-in;
+    z-index: 5;
+    transition: bottom 0.7s ease-in, left 0.7s ease-in, transform 0.7s ease-in, opacity 0.7s;
 }
 
-/* Animation for ball hiding under cup */
 @keyframes hideBall {
-    0% { bottom: 60px; transform: translateX(-50%) scale(1); opacity: 1; } /* Start above ground */
-    100% { bottom: 30px; transform: translateX(-50%) scale(0.8); opacity: 0.8; } /* Move down and slightly shrink */
+    0% { bottom: 60px; transform: translateX(-50%) scale(1); opacity: 1; }
+    100% { bottom: 30px; transform: translateX(-50%) scale(0.8); opacity: 0.8; }
 }
 
-/* Animation for cup reveal (lifting) */
 @keyframes liftCup {
     0% { transform: translateY(0); }
-    50% { transform: translateY(-40px); } /* Lift up */
-    100% { transform: translateY(0); } /* Optional: place back down or leave up */
+    50% { transform: translateY(-80px); }
+    100% { transform: translateY(-80px); }
+}
+
+.cup.wrong {
+    animation: shakeWrong 0.5s ease-in-out;
+}
+
+@keyframes shakeWrong {
+    0%, 100% { transform: translateY(-80px) rotate(0); }
+    20%, 60% { transform: translateY(-80px) rotate(-10deg); }
+    40%, 80% { transform: translateY(-80px) rotate(10deg); }
+}
+
+.cup.winner {
+    animation: winnerPulse 1s infinite alternate;
+}
+
+@keyframes winnerPulse {
+    0% { transform: translateY(-80px) scale(1); }
+    100% { transform: translateY(-80px) scale(1.1); }
 }
 
 /* Popper Overlay and Poppers */
@@ -152,63 +247,63 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    pointer-events: none; /* Allow clicks through */
+    pointer-events: none;
     z-index: 100;
 }
 
 .popper {
     position: absolute;
-    width: 20px; /* Size of popper particle */
-    height: 30px;
-    background-image: url('../images/confetti_popper.png'); /* Placeholder - USE YOUR ACTUAL IMAGE */
-    background-size: contain;
-    background-repeat: no-repeat;
-    top: -50px; /* Start above screen */
-    animation: fallDown 3s linear forwards; /* Falling animation */
+    width: 10px;
+    height: 20px;
+    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff);
+    background-size: 400% 400%;
+    animation: fallDown 4s linear forwards, gradientBG 2s ease infinite;
+    border-radius: 50%;
+    top: -30px;
 }
 
 @keyframes fallDown {
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(700px) rotate(720deg); opacity: 0; } /* Fall down and fade out */
+    100% { transform: translateY(700px) rotate(720deg); opacity: 0; }
 }
-
 
 /* --- Game 2: Emoji Game Styles --- */
 #emoji-game-container .game-area {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     grid-template-rows: repeat(7, 1fr);
-    gap: 5px; /* Space between emojis */
-    place-items: center; /* Center emojis in cells */
-    background-color: rgba(255, 255, 255, 0.8); /* Lighter background for emojis */
+    gap: 5px;
+    place-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
 }
 
 .emoji-cell {
-    font-size: 2.5em; /* Adjust emoji size */
-    cursor: default; /* Indicate not clickable */
+    font-size: 1.8em;
+    cursor: default;
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
     height: 100%;
     border-radius: 5px;
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
 }
 
 .emoji-cell.highlight {
-    /* Blinking Red Circle Effect */
     border: 4px solid red;
-    border-radius: 50%; /* Make it a circle */
+    border-radius: 50%;
     animation: blinkHighlight 0.5s infinite alternate;
+    z-index: 10;
 }
 
 @keyframes blinkHighlight {
-    0% { border-color: red; transform: scale(1.1); }
-    100% { border-color: darkred; transform: scale(1.05); }
+    0% { border-color: red; transform: scale(1.2); box-shadow: 0 0 10px red; }
+    100% { border-color: darkred; transform: scale(1.1); box-shadow: 0 0 5px darkred; }
 }
 
 #emoji-game-container .game-text {
-    /* Optionally different text styling for this game */
-     font-size: 2.5em;
-     color: #FFD700; /* Gold color? */
-}
+    font-size: 2.5em;
+    color: #FFD700;
+    text-shadow: 2px 2px 0 #FF4500;
+    }
