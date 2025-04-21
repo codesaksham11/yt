@@ -1,4 +1,7 @@
 // --- DOM Elements ---
+const startOverlay = document.getElementById('start-overlay');
+const startButton = document.getElementById('start-button');
+const gameTitle = document.getElementById('game-title');
 const appContainer = document.getElementById('app-container');
 const cupGameContainer = document.getElementById('cup-game-container');
 const emojiGameContainer = document.getElementById('emoji-game-container');
@@ -15,72 +18,88 @@ const yeahSound = document.getElementById('yeah-sound');
 
 // --- Game State ---
 let currentGame = 1; // Start with Game 1
+let gameActive = false; // Flag to track if games are running
 
 // --- Configuration ---
 const CUP_COUNT = 3;
-const CUP_WIDTH = 120; // Must match CSS roughly for positioning
-const CUP_SPACING = 50; // Space between cups
+const CUP_WIDTH = 120; 
+const CUP_SPACING = 80; // Increased space between cups
 
 const EMOJI_GRID_SIZE = 7;
 const EMOJI_TOTAL_CELLS = EMOJI_GRID_SIZE * EMOJI_GRID_SIZE;
-// List of potential emojis (add more diverse ones!)
 const EMOJI_OPTIONS = ["😀", "😂", "😍", "🥳", "😎", "😭", "😡", "🤔", "🤯", "👍", "👎", "👻", "👽", "🤖", "🍕", "🍔", "🍎", "⚽️", "🚗", "🚀"];
 
-// Timings (in milliseconds)
-const T_CUP_BALL_HIDE = 3000;       // 3s
-const T_CUP_SHUFFLE = 5000;        // 5s
-const T_CUP_WAIT = 7000;           // 7s
-const T_CUP_REVEAL_LOSER = 2000;   // 2s
-const T_CUP_REVEAL_WINNER = 2000;  // 2s
-const T_CUP_CELEBRATE = 3000;      // 3s (Popper duration)
-const T_CUP_TOTAL = T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + (T_CUP_REVEAL_LOSER * 2) + T_CUP_REVEAL_WINNER + T_CUP_CELEBRATE; // ~24s
+// Timings (in milliseconds) - SIGNIFICANTLY INCREASED FOR BETTER VISIBILITY
+const T_CUP_INTRO = 3000;         // 3s - Show the cups and ball
+const T_CUP_BALL_HIDE = 4000;     // 4s - Time for ball to hide under cup
+const T_CUP_SHUFFLE = 8000;       // 8s - Slower shuffling
+const T_CUP_WAIT = 4000;          // 4s - Wait time after shuffle
+const T_CUP_REVEAL_LOSER = 2500;  // 2.5s - Each loser reveal
+const T_CUP_REVEAL_WINNER = 3000; // 3s - Winner reveal time
+const T_CUP_CELEBRATE = 5000;     // 5s - Celebration time
+const T_CUP_TOTAL = T_CUP_INTRO + T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + (T_CUP_REVEAL_LOSER * 2) + T_CUP_REVEAL_WINNER + T_CUP_CELEBRATE;
 
-const T_EMOJI_WAIT = 8000;         // 8s
-const T_EMOJI_HIGHLIGHT = 4000;    // 4s
-const T_EMOJI_PAUSE = 1000;        // 1s
-const T_EMOJI_TOTAL = T_EMOJI_WAIT + T_EMOJI_HIGHLIGHT + T_EMOJI_PAUSE; // ~13s
-
+const T_EMOJI_INTRO = 3000;       // 3s - Intro time
+const T_EMOJI_WAIT = 10000;       // 10s - Time to find the odd emoji
+const T_EMOJI_HIGHLIGHT = 5000;   // 5s - Highlight time
+const T_EMOJI_PAUSE = 2000;       // 2s - Pause before next game
+const T_EMOJI_TOTAL = T_EMOJI_INTRO + T_EMOJI_WAIT + T_EMOJI_HIGHLIGHT + T_EMOJI_PAUSE;
 
 // --- Sound Helper ---
 function playSound(soundElement) {
-    // Reset playback position and attempt to play
     soundElement.currentTime = 0;
     soundElement.play().catch(error => {
-        // Silently catch errors - browser likely blocked autoplay
-        // console.error("Audio play failed:", error);
+        console.error("Audio play failed:", error);
     });
 }
 
+// --- Initialize Event Listeners ---
+startButton.addEventListener('click', function() {
+    // Hide the start overlay
+    startOverlay.style.display = 'none';
+    
+    // Set flag and start game loop
+    gameActive = true;
+    runGameLoop();
+    
+    // Play a sound to confirm audio permissions
+    playSound(yeahSound);
+});
+
 // --- Popper Helper ---
 function showPoppers() {
-    popperOverlay.innerHTML = ''; // Clear old poppers
-    const popperCount = 20; // How many poppers to show
+    popperOverlay.innerHTML = '';
+    const popperCount = 50; // More poppers!
 
     for (let i = 0; i < popperCount; i++) {
         const popper = document.createElement('div');
         popper.classList.add('popper');
+        // Random size for more fun
+        const size = 5 + Math.random() * 15;
+        popper.style.width = `${size}px`;
+        popper.style.height = `${size * 2}px`;
         // Random horizontal start position
         popper.style.left = `${Math.random() * 100}%`;
         // Random animation delay for staggered effect
-        popper.style.animationDelay = `${Math.random() * 0.5}s`;
+        popper.style.animationDelay = `${Math.random() * 1}s`;
         popperOverlay.appendChild(popper);
 
-        // Remove popper after animation (3s duration + small buffer)
+        // Remove popper after animation
         setTimeout(() => {
             popper.remove();
-        }, 3500);
+        }, 4500);
     }
-     playSound(yeahSound); // Play celebration sound with poppers
+    playSound(yeahSound);
 }
-
 
 // --- Game 1: Cup Game Logic ---
 function runCupGame() {
     console.log("Starting Cup Game");
+    
     // --- Setup ---
-    cupGameArea.innerHTML = ''; // Clear previous elements
-    cupGameText.textContent = ''; // Clear text
-    popperOverlay.innerHTML = ''; // Clear poppers
+    cupGameArea.innerHTML = '';
+    cupGameText.textContent = 'WATCH THE BALL!';
+    popperOverlay.innerHTML = '';
 
     const cups = [];
     const ball = document.createElement('div');
@@ -97,113 +116,116 @@ function runCupGame() {
     for (let i = 0; i < CUP_COUNT; i++) {
         const cup = document.createElement('div');
         cup.classList.add('cup');
-        cup.dataset.index = i; // Store original index if needed
+        cup.dataset.index = i;
         const leftPos = startLeft + i * (CUP_WIDTH + CUP_SPACING);
         cup.style.left = `${leftPos}px`;
-        cup.style.bottom = '20px'; // Starting position from CSS
+        cup.style.bottom = '20px';
         cupElements.push(cup);
         cupGameArea.appendChild(cup);
 
-        // Store reference to the winning cup element
         if (i === winningCupIndex) {
             cup.dataset.hasBall = "true";
         }
     }
 
-    const winningCupElement = cupElements[winningCupIndex];
-    const winningCupRect = winningCupElement.getBoundingClientRect();
-    const gameAreaRect = cupGameArea.getBoundingClientRect();
-
-    // Initial ball position calculation (center of game area horizontally, below cups)
-    ball.style.left = `${cupGameArea.offsetWidth / 2}px`; // Centered initially
-    ball.style.bottom = '60px'; // Position slightly above where it will hide
+    // Initial ball position
+    ball.style.left = `${cupElements[winningCupIndex].offsetLeft + (CUP_WIDTH / 2) - 30}px`;
+    ball.style.bottom = '60px';
+    ball.style.opacity = '1';
 
     // --- Animation Sequence ---
+    
+    // 0. Introduction text
+    setTimeout(() => {
+        cupGameText.textContent = "BALL GOES UNDER A CUP!";
+    }, 1000);
 
     // 1. Animate ball hiding
     setTimeout(() => {
-        console.log("Hiding ball under cup:", winningCupIndex);
-        // Move ball towards the winning cup's horizontal center
-        const targetLeft = winningCupElement.offsetLeft + (CUP_WIDTH / 2) - (ball.offsetWidth / 2);
+        cupGameText.textContent = "WATCH CAREFULLY NOW!";
+        // Move ball under the winning cup
+        const targetLeft = cupElements[winningCupIndex].offsetLeft + (CUP_WIDTH / 2) - 30;
         ball.style.left = `${targetLeft}px`;
-        // Apply hiding animation (moves down, fades slightly, shrinks - defined in CSS)
-        ball.style.animation = `hideBall 0.5s ease-in forwards`;
-        ball.style.bottom = '30px'; // Final vertical position under cup (visually)
-    }, 500); // Small delay before hiding starts
+        ball.style.animation = `hideBall 2s ease-in forwards`;
+        ball.style.bottom = '30px';
+    }, T_CUP_INTRO);
 
     // 2. Shuffle Cups
     setTimeout(() => {
-        console.log("Shuffling cups");
-        ball.style.display = 'none'; // Hide ball completely during shuffle
+        cupGameText.textContent = "CUPS ARE SHUFFLING!";
+        ball.style.opacity = '0'; // Hide ball completely during shuffle
         shuffleCups(cupElements);
-    }, T_CUP_BALL_HIDE);
+    }, T_CUP_INTRO + T_CUP_BALL_HIDE);
 
-    // 3. Show "Which Cup?" Text (after shuffle finishes)
+    // 3. Show "Which Cup?" Text
     setTimeout(() => {
-        console.log("Showing 'Which Cup?' text");
-        cupGameText.textContent = "WHICH CUP???";
-         // Ensure pulsing animation is active (it's default on .game-text)
-    }, T_CUP_BALL_HIDE + T_CUP_SHUFFLE);
+        cupGameText.textContent = "WHICH CUP HAS THE BALL???";
+        // Add bigger pulse animation
+        cupGameText.style.animation = "pulseText 0.8s infinite ease-in-out";
+    }, T_CUP_INTRO + T_CUP_BALL_HIDE + T_CUP_SHUFFLE);
 
     // 4. Reveal Losing Cups
     setTimeout(() => {
-        console.log("Revealing losers");
-        let losersRevealed = 0;
-        cupElements.forEach((cup, index) => {
-            if (cup.dataset.hasBall !== "true") {
-                // Stagger the reveals slightly
-                setTimeout(() => {
-                    cup.style.animation = `liftCup 0.5s ease-out forwards`;
-                    playSound(ohNoSound);
-                }, losersRevealed * (T_CUP_REVEAL_LOSER / 2) ); // Reveal losers one after another within the loser reveal time
-                 losersRevealed++;
-            }
-        });
-    }, T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT);
+        cupGameText.textContent = "LET'S CHECK...";
+        
+        // First losing cup
+        const losers = cupElements.filter(cup => cup.dataset.hasBall !== "true");
+        
+        setTimeout(() => {
+            losers[0].style.animation = `liftCup 1s ease-out forwards`;
+            losers[0].classList.add('wrong');
+            playSound(ohNoSound);
+        }, 500);
+        
+        // Second losing cup with delay
+        setTimeout(() => {
+            losers[1].style.animation = `liftCup 1s ease-out forwards`;
+            losers[1].classList.add('wrong');
+            playSound(ohNoSound);
+        }, 3000);
+        
+    }, T_CUP_INTRO + T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT);
 
     // 5. Reveal Winning Cup
     setTimeout(() => {
-        console.log("Revealing winner");
-         cupElements.forEach(cup => {
-            if (cup.dataset.hasBall === "true") {
-                cup.style.animation = `liftCup 0.5s ease-out forwards`;
-                // Make ball visible again under the lifted cup
-                ball.style.display = 'block';
-                ball.style.opacity = '1';
-                ball.style.transform = 'translateX(-50%) scale(1)'; // Reset scale if needed
-                const cupRect = cup.getBoundingClientRect();
-                 const gameAreaRect = cupGameArea.getBoundingClientRect();
-                ball.style.left = `${cup.offsetLeft + (CUP_WIDTH / 2) - (ball.offsetWidth / 2)}px`; // Ensure ball is centered under winner
-                ball.style.bottom = '30px'; // Position ball correctly
-                playSound(yeahSound); // Play win sound immediately
-            }
-        });
-         cupGameText.textContent = "!!!"; // Change text
-    }, T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + T_CUP_REVEAL_LOSER * 2); // After both losers revealed
+        cupGameText.textContent = "HERE IT IS!!!";
+        
+        const winningCup = cupElements.find(cup => cup.dataset.hasBall === "true");
+        winningCup.style.animation = `liftCup 1s ease-out forwards`;
+        winningCup.classList.add('winner');
+        
+        // Make ball visible again
+        setTimeout(() => {
+            ball.style.opacity = '1';
+            const cupPos = winningCup.offsetLeft + (CUP_WIDTH / 2) - 30;
+            ball.style.left = `${cupPos}px`;
+            playSound(yeahSound);
+        }, 500);
+        
+    }, T_CUP_INTRO + T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + (T_CUP_REVEAL_LOSER * 2));
 
     // 6. Celebration Poppers
     setTimeout(() => {
-        console.log("Showing poppers");
+        cupGameText.textContent = "AWESOME JOB!";
         showPoppers();
-        cupGameText.textContent = ""; // Clear text during celebration
-    }, T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + (T_CUP_REVEAL_LOSER * 2) + T_CUP_REVEAL_WINNER);
+    }, T_CUP_INTRO + T_CUP_BALL_HIDE + T_CUP_SHUFFLE + T_CUP_WAIT + (T_CUP_REVEAL_LOSER * 2) + T_CUP_REVEAL_WINNER);
 
     // 7. Transition to Next Game
     setTimeout(() => {
         console.log("Transitioning to Emoji Game");
         currentGame = 2;
-        runGameLoop();
+        if (gameActive) runGameLoop();
     }, T_CUP_TOTAL);
 }
 
 // --- Cup Shuffle Helper ---
 function shuffleCups(cupElements) {
-    const shuffleSteps = 10; // Number of quick swaps
+    const shuffleSteps = 8; // Fewer but more noticeable swaps
     const stepDuration = T_CUP_SHUFFLE / shuffleSteps;
     let currentStep = 0;
 
     function doShuffleStep() {
-        if (currentStep >= shuffleSteps) return; // Shuffle complete
+        if (currentStep >= shuffleSteps) return;
 
         // Pick two random distinct cup indices
         let i1 = Math.floor(Math.random() * CUP_COUNT);
@@ -222,9 +244,8 @@ function shuffleCups(cupElements) {
         cup1.style.left = pos2;
         cup2.style.left = pos1;
 
-        // Swap elements in the array too, so reveal logic works correctly
+        // Swap elements in the array
         [cupElements[i1], cupElements[i2]] = [cupElements[i2], cupElements[i1]];
-
 
         currentStep++;
         setTimeout(doShuffleStep, stepDuration);
@@ -233,13 +254,13 @@ function shuffleCups(cupElements) {
     doShuffleStep();
 }
 
-
 // --- Game 2: Emoji Game Logic ---
 function runEmojiGame() {
     console.log("Starting Emoji Game");
+    
     // --- Setup ---
-    emojiGameArea.innerHTML = ''; // Clear previous grid
-    emojiGameText.textContent = "FIND THE ODD ONE!"; // Set text
+    emojiGameArea.innerHTML = '';
+    emojiGameText.textContent = "GET READY FOR EMOJI CHALLENGE!";
 
     // Choose common and odd emoji
     let commonEmoji = EMOJI_OPTIONS[Math.floor(Math.random() * EMOJI_OPTIONS.length)];
@@ -258,7 +279,7 @@ function runEmojiGame() {
         if (i === oddEmojiIndex) {
             cell.textContent = oddEmoji;
             cell.dataset.isOdd = "true";
-            oddEmojiElement = cell; // Store reference to the odd one
+            oddEmojiElement = cell;
         } else {
             cell.textContent = commonEmoji;
         }
@@ -266,27 +287,40 @@ function runEmojiGame() {
     }
 
     // --- Animation Sequence ---
-
-    // 1. Wait and Highlight
+    
+    // 1. Introduction
     setTimeout(() => {
-        console.log("Highlighting odd emoji");
+        emojiGameText.textContent = "FIND THE ODD ONE OUT!";
+    }, T_EMOJI_INTRO);
+
+    // 2. Wait and Highlight
+    setTimeout(() => {
+        emojiGameText.textContent = "DID YOU SPOT IT?";
+    }, T_EMOJI_INTRO + T_EMOJI_WAIT / 2);
+    
+    setTimeout(() => {
+        emojiGameText.textContent = "HERE IT IS!";
         if (oddEmojiElement) {
             oddEmojiElement.classList.add('highlight');
         }
-         emojiGameText.textContent = "!!!"; // Change text
-    }, T_EMOJI_WAIT);
+    }, T_EMOJI_INTRO + T_EMOJI_WAIT);
 
-    // 2. Remove Highlight and Transition
+    // 3. Celebration
+    setTimeout(() => {
+        emojiGameText.textContent = "GREAT JOB!";
+        playSound(yeahSound);
+    }, T_EMOJI_INTRO + T_EMOJI_WAIT + T_EMOJI_HIGHLIGHT / 2);
+
+    // 4. Remove Highlight and Transition
     setTimeout(() => {
         console.log("Transitioning to Cup Game");
-         if (oddEmojiElement) {
+        if (oddEmojiElement) {
             oddEmojiElement.classList.remove('highlight');
         }
         currentGame = 1;
-        runGameLoop();
-    }, T_EMOJI_WAIT + T_EMOJI_HIGHLIGHT); // Total time before transition starts
+        if (gameActive) runGameLoop();
+    }, T_EMOJI_INTRO + T_EMOJI_WAIT + T_EMOJI_HIGHLIGHT + T_EMOJI_PAUSE);
 }
-
 
 // --- Master Game Loop ---
 function runGameLoop() {
@@ -303,8 +337,8 @@ function runGameLoop() {
 }
 
 // --- Initialisation ---
-// Ensure DOM is fully loaded before starting
+// Do NOT auto-start - wait for button click instead
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Loaded - Starting Hypno Loop V1");
-    runGameLoop(); // Start the first game
+    console.log("DOM Loaded - Hypno Loop V2 ready");
+    // Display start overlay - do not auto-start
 });
